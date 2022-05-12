@@ -1,0 +1,116 @@
+{
+    "items": [
+        {
+            "type": "AUD",
+            "imageurl": "https://www.dongabank.com.vn/images/flag/AUD.gif",
+            "muatienmat": "16220",
+            "muack": "16310",
+            "bantienmat": "16530",
+            "banck": "16520"
+        },
+        {
+            "type": "CAD",
+            "imageurl": "https://www.dongabank.com.vn/images/flag/CAD.gif",
+            "muatienmat": "17580",
+            "muack": "17680",
+            "bantienmat": "17910",
+            "banck": "17900"
+        },
+        {
+            "type": "CHF",
+            "imageurl": "https://www.dongabank.com.vn/images/flag/CHF.gif",
+            "muatienmat": "22610",
+            "muack": "24650",
+            "bantienmat": "23080",
+            "banck": "24980"
+        },
+        {
+            "type": "CNY",
+            "imageurl": "https://www.dongabank.com.vn/images/flag/CNY.gif",
+            "muatienmat": "3000",
+            "muack": "3000",
+            "bantienmat": "3500",
+            "banck": "3500"
+        },
+        {
+            "type": "EUR",
+            "imageurl": "https://www.dongabank.com.vn/images/flag/EUR.gif",
+            "muatienmat": "25610",
+            "muack": "25730",
+            "bantienmat": "26050",
+            "banck": "26040"
+        },
+        {
+            "type": "GBP",
+            "imageurl": "https://www.dongabank.com.vn/images/flag/GBP.gif",
+            "muatienmat": "30140",
+            "muack": "30270",
+            "bantienmat": "30660",
+            "banck": "30650"
+        },
+        {
+            "type": "HKD",
+            "imageurl": "https://www.dongabank.com.vn/images/flag/HKD.gif",
+            "muatienmat": "2410",
+            "muack": "2900",
+            "bantienmat": "2920",
+            "banck": "2970"
+        },
+        {
+            "type": "JPY",
+            "imageurl": "https://www.dongabank.com.vn/images/flag/JPY.gif",
+            "muatienmat": "195.7",
+            "muack": "199.6",
+            "bantienmat": "201.8",
+            "banck": "202.1"
+        },
+        {
+            "type": "NZD",
+            "imageurl": "https://www.dongabank.com.vn/images/flag/NZD.gif",
+            "muatienmat": "",
+            "muack": "15430",
+            "bantienmat": "",
+            "banck": "15770"
+        },
+        {
+            "type": "PNJ_DAB",
+            "imageurl": "https://www.dongabank.com.vn/images/flag/PNJ_DAB.gif",
+            "muatienmat": "5195000",
+            "muack": "5195000",
+            "bantienmat": "5275000",
+            "banck": "5275000"
+        },
+        {
+            "type": "SGD",
+            "imageurl": "https://www.dongabank.com.vn/images/flag/SGD.gif",
+            "muatienmat": "16560",
+            "muack": "16710",
+            "bantienmat": "16910",
+            "banck": "16910"
+        },
+        {
+            "type": "THB",
+            "imageurl": "https://www.dongabank.com.vn/images/flag/THB.gif",
+            "muatienmat": "610",
+            "muack": "660",
+            "bantienmat": "680",
+            "banck": "680"
+        },
+        {
+            "type": "USD",
+            "imageurl": "https://www.dongabank.com.vn/images/flag/USD.gif",
+            "muatienmat": "22890",
+            "muack": "22890",
+            "bantienmat": "23040",
+            "banck": "23040"
+        },
+        {
+            "type": "XAU",
+            "imageurl": "https://www.dongabank.com.vn/images/flag/XAU.gif",
+            "muatienmat": "6085000",
+            "muack": "6120000",
+            "bantienmat": "6155000",
+            "banck": "6120000"
+        }
+    ]
+}
