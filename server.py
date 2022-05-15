@@ -1,4 +1,4 @@
-#Import cac thu vien
+# Import cac thu vien
 import socket
 import threading
 from tkinter import *

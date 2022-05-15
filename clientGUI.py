@@ -161,14 +161,14 @@ def login_verify():
     if(replyRes == "OK"):
         client.sendall(username1.encode(FORMAT))
         client.sendall(password1.encode(FORMAT))
-        notificationLogin()
+        notificationLogin(username1)
 
 
 # Ham xuat ra thong tin dang nhap
-def notificationLogin():
+def notificationLogin(username):
     successLogin = client.recv(1024).decode(FORMAT)
     if(successLogin == "1"):
-        login_sucess()
+        login_sucess(username)
     else:
         label = Label(login_screen, fg="orange", bg='#556677',
                       text="Tài khoản hoặc mật khẩu không chính xác", font=("sans-serif", 12))
@@ -223,28 +223,88 @@ def deleteSearch():
     label_money_2.destroy()
     label_money_3.destroy()
     label_money_4.destroy()
+
+
+def addTextNote(username):
+    global add_text_screen
+    add_text_screen = Toplevel(main_screen)
+    add_text_screen.title("Ghi chú")
+    add_text_screen.geometry("500x300")
+    add_text_screen.configure(bg='#556677')
+    Label(add_text_screen, text="Điền thông tin",
+          fg="white", font=("sans-serif", 10), bg='#556677').pack()
+    Label(add_text_screen, text="", bg='#556677').pack()
+    global text_verify
+    text_verify = StringVar()
+    global text_entry
+    Label(add_text_screen, text="Nội dung: ", fg="white",
+          font=("sans-serif", 10), bg='#556677').pack()
+    text_entry = Entry(add_text_screen, textvariable=text_verify, bg="#c0c0c0", font=(
+        "sans-serif", 10), justify=CENTER)
+    text_entry.focus_force()
+    text_entry.pack(side=TOP, ipadx=30, ipady=6)
+
+    Label(add_text_screen, text="", bg='#556677').pack()
+    Button(add_text_screen, text="Submit", fg="white", font=("sans-serif",
+           11), width=15, height=1, bg="#3398cc", command=lambda: addTextToDataBase(username)).pack()
+
+
+def addFilesNote():
+    a = 2
+
+
+def addImagesNote():
+    a = 2
+
+
+def addTextToDataBase(username):
+    text_info = text_verify.get()
+    print('content: ', text_info)
+    print('user: ', username)
+    client.sendall("add_text".encode(FORMAT))
+    replyRes = client.recv(1024).decode(FORMAT)
+    if(replyRes == "OK"):
+        client.sendall(username.encode(FORMAT))
+        client.sendall(text_info.encode(FORMAT))
+        text_entry.delete(0, END)
+    # notificationRegister()
+
+
 # Ham login thanh cong - Chuyen sang trang tra cuu
 
 
-def login_sucess():
+def login_sucess(username):
     global search_screen
     search_screen = Toplevel(login_screen)
-    search_screen.title("Bảng tra cứu tiền tệ")
+    search_screen.title("Ứng dụng E-note")
     search_screen.geometry("500x300")
     search_screen.configure(bg='#556677')
     global typeMoney
     global typeMoney_entry
     typeMoney = StringVar()
-    Label(search_screen, text="Nhập tên đồng tiền: ", fg="white",
+
+    Label(search_screen, text="Chọn định dạng cần ghi chú: ", fg="white",
           font=("sans-serif", 10), bg='#556677').pack()
-    typeMoney_entry = Entry(
-        search_screen, textvariable=typeMoney, bg="#c0c0c0")
-    typeMoney_entry.pack()
-    Label(search_screen, text="", bg='#556677').pack()
-    Button(search_screen, text="Tra cứu", fg="white",
-           bg="#3398cc", width=10, height=1, command=search).pack()
-    Label(search_screen, text="", fg="white", font=(
-        "sans-serif", 10), bg='#556677').pack()
+
+    Button(search_screen, text="Text", fg="white",
+           bg="#3398cc", width=10, height=1, command=lambda: addTextNote(username)).pack(pady=20)
+
+    Button(search_screen, text="Images", fg="white",
+           bg="#3398cc", width=10, height=1, command=addImagesNote).pack(pady=20)
+
+    Button(search_screen, text="Files", fg="white",
+           bg="#3398cc", width=10, height=1, command=addFilesNote).pack(pady=20)
+
+    # Label(search_screen, text="Nhập tên đồng tiền: ", fg="white",
+    #       font=("sans-serif", 10), bg='#556677').pack()
+    # typeMoney_entry = Entry(
+    #     search_screen, textvariable=typeMoney, bg="#c0c0c0")
+    # typeMoney_entry.pack()
+    # Label(search_screen, text="", bg='#556677').pack()
+    # Button(search_screen, text="Tra cứu", fg="white",
+    #        bg="#3398cc", width=10, height=1, command=search).pack()
+    # Label(search_screen, text="", fg="white", font=(
+    #     "sans-serif", 10), bg='#556677').pack()
     # Button(search_screen, text="Xóa màn hình", fg="white",bg="#3398cc", width=10, height=1, command = deleteSearch).pack()
 
 # Ham thoat ung dung
