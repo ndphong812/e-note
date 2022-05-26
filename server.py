@@ -192,7 +192,7 @@ def serverScreen():
     initServer()
     global main_screen_server
     main_screen_server = Tk()
-    main_screen_server.geometry("1000x600")
+    main_screen_server.geometry("800x500")
     main_screen_server.title("TCP Server")
     main_screen_server.configure(bg='#556677')
     Label(text="MÀN HÌNH SERVER", fg="white", bg="#3398cc",
@@ -200,15 +200,9 @@ def serverScreen():
     Button(text="RUN", cursor="heart", fg="white", height="1", bg="#3398cc",
            width="10", font=("sans-serif", 10), command=connectClient).place(x=30, y=100)
     Label(main_screen_server, text="IP Adress:" + str(HOST), fg="white",
-          font=("sans-serif", 12), bg='#556677').place(x=510, y=100)
+          font=("sans-serif", 12), bg='#556677').place(x=300, y=100)
     Label(main_screen_server, text="PORT:" + str(SERVER_PORT), fg="white", font=(
-        "sans-serif", 12), bg='#556677').place(x=700, y=100)
-    chatlogServer = Text(main_screen_server, bg='white')
-    chatlogServer.config(state=DISABLED)
-    chatlogServer.place(x=6, y=150, height=386, width=480)
-    chatlogClient = Text(main_screen_server, bg='white')
-    chatlogClient.config(state=DISABLED)
-    chatlogClient.place(x=510, y=150, height=386, width=480)
+        "sans-serif", 12), bg='#556677').place(x=600, y=100)
     main_screen_server.mainloop()
 
 

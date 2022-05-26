@@ -93,6 +93,18 @@
                     "content": "afsdf"
                 }
             ]
+        },
+        {
+            "id": "418e5a6a-dcad-11ec-9d6a-005056c00008",
+            "username": "phong21",
+            "password": "phong21",
+            "note": [
+                {
+                    "id": "4d63e592-dcad-11ec-8263-005056c00008",
+                    "type": "text",
+                    "content": "ghi chu 1 cua phong"
+                }
+            ]
         }
     ]
 }
