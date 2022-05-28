@@ -230,7 +230,42 @@ def addFilesNote(username):
 
 
 def addImagesNote(username):
-    a = 2
+    global add_image_screen
+    add_image_screen = Toplevel(main_screen)
+    add_image_screen.title("Ghi chú")
+    add_image_screen.geometry("500x300")
+    add_image_screen.configure(bg='#556677')
+    Label(add_image_screen, text="Điền thông tin",
+          fg="white", font=("sans-serif", 10), bg='#556677').pack()
+    Label(add_image_screen, text="", bg='#556677').pack()
+    global image_verify
+    image_verify = StringVar()
+    global image_entry
+    Label(add_image_screen, text="Đường dẫn ảnh: ", fg="white",
+          font=("sans-serif", 10), bg='#556677').pack()
+    image_entry = Entry(add_image_screen, textvariable=image_verify, bg="#c0c0c0", font=(
+        "sans-serif", 10), justify=CENTER)
+    image_entry.focus_force()
+    image_entry.pack(side=TOP, ipadx=30, ipady=6)
+
+    Label(add_image_screen, text="", bg='#556677').pack()
+    Button(add_image_screen, text="Submit", fg="white", font=("sans-serif",
+           11), width=15, height=1, bg="#3398cc", command=lambda: addImageToDataBase(username)).pack()
+
+
+def addImageToDataBase(username):
+    image_info = image_verify.get()
+    file = open(str(image_info), 'rb')
+    image_data = file.read(2048)
+    client.sendall("add_image".encode(FORMAT))
+    replyRes = client.recv(1024).decode(FORMAT)
+    if(replyRes == "OK"):
+        client.sendall(username.encode(FORMAT))
+        while image_data:
+            client.send(image_data)
+            image_data = file.read(2048)
+        file.close()
+        image_entry.delete(0, END)
 
 
 def addTextToDataBase(username):
@@ -244,23 +279,21 @@ def addTextToDataBase(username):
 
 
 def addFileToDataBase(username):
-    file_info = file_verify.get()
-    file_size = os.path.getsize(file_info)
+    filename = file_verify.get()
+    filesize = os.path.getsize(filename)
+    BUFFER_SIZE = 1024 * 10000
     client.sendall("add_file".encode(FORMAT))
     replyRes = client.recv(1024).decode(FORMAT)
+    SEPARATOR = "<SEPARATOR>"
     if(replyRes == "OK"):
         client.sendall(username.encode(FORMAT))
-        client.sendall(file_info.encode(FORMAT))
-        client.sendall(str(file_size).encode(FORMAT))
-
-        with open(file_info, "rb") as file:
-            c = 0
-            while c <= file_size:
-                data = file.read(1024)
-                if not (data):
+        client.send(f"{filename}{SEPARATOR}{filesize}".encode())
+        with open(filename, "rb") as f:
+            while True:
+                bytes_read = f.read(BUFFER_SIZE)
+                if not bytes_read:
                     break
-                client.sendall(data)
-                c += len(data)
+                client.sendall(bytes_read)
         file_entry.delete(0, END)
 # Ham login thanh cong - Chuyen sang trang tra cuu
 
@@ -273,18 +306,22 @@ def viewDetailNote(username, index):
     view_detail_note_screen.configure(bg='#556677')
     Label(view_detail_note_screen, text="Ghi chú của bạn: ", fg="white",
           font=("sans-serif", 10), bg='#556677').pack()
-    if os.stat("data.json").st_size != 0:
-        data = ""
-        with open("data.json") as file_name:
-            data = json.load(file_name)
-        for x in data["user"]:
-            if(x['username'] == username):
-                Label(view_detail_note_screen, text=x['note'][index]['content'], fg="white",
-                      font=("sans-serif", 10), bg='#556677').pack()
+
+    client.sendall("view-detail".encode(FORMAT))
+    replyRes = client.recv(1024).decode(FORMAT)
+    if(replyRes == "OK"):
+        client.sendall(username.encode(FORMAT))
+        client.sendall(str(index).encode(FORMAT))
+        contentNote = client.recv(1024).decode(FORMAT)
+        Label(view_detail_note_screen, text=str(contentNote), fg="white",
+              font=("sans-serif", 10), bg='#556677').pack()
+        Button(view_detail_note_screen, text="Download", fg="white",
+               bg="#3398cc", width=10, height=1).pack(pady=20)
 
 
 def viewNote(username):
 
+    print("View note is running")
     global view_note_screen
     view_note_screen = Toplevel(login_screen)
     view_note_screen.title("Ứng dụng E-note")
@@ -295,21 +332,21 @@ def viewNote(username):
 
     Label(view_note_screen, text="", fg="white",
           font=("sans-serif", 10), bg='#556677').pack()
-    if os.stat("data.json").st_size != 0:
-        data = ""
-        with open("data.json") as file_name:
-            data = json.load(file_name)
-        for x in data["user"]:
-            if(x['username'] == username):
-                if(len(x['note']) == 0):
-                    Label(view_note_screen, text="Không có ghi chú nào ", fg="white",
-                          font=("sans-serif", 10), bg='#556677').pack()
-                else:
-                    for index in range(len(x['note'])):
-                        Label(view_note_screen, text="Ghi chú" + str(index+1), fg="white",
-                              font=("sans-serif", 10), bg='#556677').pack()
-                        Button(view_note_screen, text="Xem", fg="white",
-                               bg="#3398cc", width=10, height=1, command=lambda: viewDetailNote(username, index)).pack(pady=20)
+
+    client.sendall("view".encode(FORMAT))
+    replyRes = client.recv(1024).decode(FORMAT)
+    if(replyRes == "OK"):
+        client.sendall(username.encode(FORMAT))
+        lengthNote = int(client.recv(1024).decode(FORMAT))
+        if(lengthNote == 0):
+            Label(view_note_screen, text="Không có ghi chú nào ", fg="white",
+                  font=("sans-serif", 10), bg='#556677').pack()
+        else:
+            for index in range(lengthNote):
+                Label(view_note_screen, text="Ghi chú" + str(index+1), fg="white",
+                      font=("sans-serif", 10), bg='#556677').pack()
+                Button(view_note_screen, text="Xem", fg="white",
+                       bg="#3398cc", width=10, height=1, command=lambda: viewDetailNote(username, index)).pack(pady=20)
 
 
 def login_sucess(username):

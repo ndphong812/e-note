@@ -104,7 +104,6 @@ def handleAddText(conn: socket):
                 data = json.load(file_name)
                 for idx, x in enumerate(data["user"]):
                     if(x["username"] == user_name_content):
-                        print(data["user"][idx]["note"])
                         data["user"][idx]["note"].append({'id': str(uuid.uuid1()),
                                                           "type": "text", "content": text_content})
                 file_name.seek(0)
@@ -113,26 +112,98 @@ def handleAddText(conn: socket):
 # Ham tuong tac voi Client
 
 
-def handleAddFile(conn: socket):
+def handleAddImage(conn: socket):
     conn.send("OK".encode(FORMAT))
     user_name_content = None
-    file_name_content = None
-    file_size_content = None
-    while(user_name_content != "" and file_name_content != "" and file_size_content != ""):
+    while(user_name_content != ""):
         user_name_content = conn.recv(1024).decode(FORMAT)
-        file_name_content = conn.recv(1024).decode(FORMAT)
-        file_size_content = conn.recv(1024).decode(FORMAT)
         if os.stat("data.json").st_size != 0:
             data = ""
             with open("data.json", "r+") as file_name:
                 data = json.load(file_name)
                 for idx, x in enumerate(data["user"]):
                     if(x["username"] == user_name_content):
-                        print(data["user"][idx]["note"])
+                        nameImage = str(user_name_content) + "_" + \
+                            str(len(data["user"][idx]["note"])) + ".png"
                         data["user"][idx]["note"].append({'id': str(uuid.uuid1()),
-                                                          "type": "file", "content": file_name_content})
+                                                          "type": "image", "content": nameImage})
                 file_name.seek(0)
                 json.dump(data, file_name, indent=4)
+
+        file = open(nameImage, "wb")
+        image_chunk = conn.recv(2048)  # stream-based protocol
+        while image_chunk:
+            file.write(image_chunk)
+            image_chunk = conn.recv(2048)
+        file.close()
+        HandleClient(conn, addr)
+
+
+def handleAddFile(conn: socket):
+    conn.send("OK".encode(FORMAT))
+    user_name_content = None
+    while(user_name_content != ""):
+        user_name_content = conn.recv(1024).decode(FORMAT)
+        SEPARATOR = "<SEPARATOR>"
+        BUFFER_SIZE = 1024 * 10000
+        received = conn.recv(BUFFER_SIZE).decode()
+        filename, filesize = received.split(SEPARATOR)
+        filename = os.path.basename(filename)
+        filesize = int(filesize)
+        type = filename.split('.')
+        if os.stat("data.json").st_size != 0:
+            data = ""
+            with open("data.json", "r+") as file_name:
+                data = json.load(file_name)
+                for idx, x in enumerate(data["user"]):
+                    if(x["username"] == user_name_content):
+                        filename1 = str(user_name_content) + "_" + \
+                            str(len(data["user"][idx]["note"])) + \
+                            "." + str(type[1])
+                        data["user"][idx]["note"].append({'id': str(uuid.uuid1()),
+                                                          "type": "file", "content": filename1})
+                file_name.seek(0)
+                json.dump(data, file_name, indent=4)
+        with open(filename1, "wb") as f:
+            while True:
+                bytes_read = conn.recv(BUFFER_SIZE)
+                if not bytes_read:
+                    break
+                f.write(bytes_read)
+        HandleClient(conn, addr)
+
+
+def handleView(conn: socket):
+    conn.send("OK".encode(FORMAT))
+    username = None
+    while(username != ""):
+        username = conn.recv(1024).decode(FORMAT)
+        if os.stat("data.json").st_size != 0:
+            data = ""
+            with open("data.json", "r+") as file_name:
+                data = json.load(file_name)
+                for idx, x in enumerate(data["user"]):
+                    if(x["username"] == username):
+                        lengthNote = str(len(data["user"][idx]["note"]))
+                        conn.send(lengthNote.encode())
+        HandleClient(conn, addr)
+
+
+def handleViewDetail(conn: socket):
+    conn.send("OK".encode(FORMAT))
+    username = None
+    index = None
+    while(username != "" and index != ""):
+        username = conn.recv(1024).decode(FORMAT)
+        index = int(conn.recv(1024).decode(FORMAT))
+        if os.stat("data.json").st_size != 0:
+            data = ""
+            with open("data.json", "r+") as file_name:
+                data = json.load(file_name)
+                for idx, x in enumerate(data["user"]):
+                    if(x["username"] == username):
+                        conn.send(data["user"][idx]["note"]
+                                  [index]["content"].encode(FORMAT))
         HandleClient(conn, addr)
 
 
@@ -151,6 +222,12 @@ def HandleClient(conn: socket, addr):
             handleAddText(conn)
         if(method == "add_file"):
             handleAddFile(conn)
+        if(method == "add_image"):
+            handleAddImage(conn)
+        if(method == "view"):
+            handleView(conn)
+        if(method == "view-detail"):
+            handleViewDetail(conn)
     conn.close()
 
 # Ham khoi tao Server
