@@ -1,16 +1,13 @@
 # Import cac thu vien
+import random
 import socket
 import threading
 from tkinter import *
-import tkinter
 import os
 import json
-import requests
-import datetime
 from PIL import Image, ImageTk
 from tkinter import ttk
 from tkinter.messagebox import askyesno
-
 from fileinput import filename
 import uuid
 
@@ -77,6 +74,7 @@ def checkAccountLogin(username, password):
     return successLogin
 
 
+# Ham xu ly dang nhap
 def handleLogin(conn: socket):
     conn.send("OK".encode(FORMAT))
     username = None
@@ -88,14 +86,14 @@ def handleLogin(conn: socket):
         conn.sendall(str(successLogin).encode(FORMAT))
         HandleClient(conn, addr)
 
-# Hanle add text
+# Ham them ghi chu Text
 
 
 def handleAddText(conn: socket):
     conn.send("OK".encode(FORMAT))
     user_name_content = None
     text_content = None
-    while(user_name_content != "" and text_content != ""):
+    while(user_name_content != ""):
         user_name_content = conn.recv(1024).decode(FORMAT)
         text_content = conn.recv(1024).decode(FORMAT)
         if os.stat("data.json").st_size != 0:
@@ -109,7 +107,7 @@ def handleAddText(conn: socket):
                 file_name.seek(0)
                 json.dump(data, file_name, indent=4)
         HandleClient(conn, addr)
-# Ham tuong tac voi Client
+# Ham them ghi chu Image
 
 
 def handleAddImage(conn: socket):
@@ -117,6 +115,7 @@ def handleAddImage(conn: socket):
     user_name_content = None
     while(user_name_content != ""):
         user_name_content = conn.recv(1024).decode(FORMAT)
+        image_size = int(conn.recv(1024).decode(FORMAT))
         if os.stat("data.json").st_size != 0:
             data = ""
             with open("data.json", "r+") as file_name:
@@ -130,13 +129,39 @@ def handleAddImage(conn: socket):
                 file_name.seek(0)
                 json.dump(data, file_name, indent=4)
 
-        file = open(nameImage, "wb")
-        image_chunk = conn.recv(2048)  # stream-based protocol
-        while image_chunk:
-            file.write(image_chunk)
-            image_chunk = conn.recv(2048)
-        file.close()
+        # file = open(nameImage, "wb")
+        # image_chunk = conn.recv(2048)  # stream-based protocol
+        # while image_chunk:
+        #     file.write(image_chunk)
+        #     image_chunk = conn.recv(2048)
+        # file.close()
+
+        # r = input("Enter the extension of your received file - jpg , png , bmp")
+        # s = "pythonimage123." + r
+        # print(s)
+        # condition = True
+        # c.connect((q, p))
+        # f = open(s, "wb")
+        # while condition:
+        #     image = c.recv(1024)
+        #     if str(image) == "b''":
+        #         condition = False
+        #     f.write(image)
+
+        condition = True
+        with open(nameImage, "wb") as f:
+            while condition:
+                bytes_read = conn.recv(1024)
+                if str(bytes_read) == "b''":
+                    condition = False
+                f.write(bytes_read)
+                # if os.stat(nameImage).st_size * 1.2 > image_size:
+                #     break
+            f.close()
+        print("Da xong image")
         HandleClient(conn, addr)
+
+# Ham them ghi chu File
 
 
 def handleAddFile(conn: socket):
@@ -167,12 +192,13 @@ def handleAddFile(conn: socket):
         with open(filename1, "wb") as f:
             while True:
                 bytes_read = conn.recv(BUFFER_SIZE)
-                if not bytes_read:
-                    break
                 f.write(bytes_read)
+                if os.stat(filename1).st_size == filesize:
+                    break
         HandleClient(conn, addr)
 
 
+# Ham xem ghi chu
 def handleView(conn: socket):
     conn.send("OK".encode(FORMAT))
     username = None
@@ -189,6 +215,7 @@ def handleView(conn: socket):
         HandleClient(conn, addr)
 
 
+# Ham xem chi tiet ghi chu
 def handleViewDetail(conn: socket):
     conn.send("OK".encode(FORMAT))
     username = None
@@ -207,6 +234,7 @@ def handleViewDetail(conn: socket):
         HandleClient(conn, addr)
 
 
+# Ham xu ly cac request cua client
 def HandleClient(conn: socket, addr):
     global username
     global password
@@ -252,11 +280,13 @@ def initServer():
 
 
 def connectClient():
-    while(1):
+    nClient = 0
+    while(nClient < 1):
         try:
             global conn
             global addr
             conn, addr = s.accept()
+            nClient += 1
             thr = threading.Thread(target=HandleClient, args=(conn, addr))
             thr.daemon = True
             thr.start()
@@ -264,6 +294,7 @@ def connectClient():
             pass
 
 
+# Ham giao dien Server
 def serverScreen():
 
     initServer()

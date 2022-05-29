@@ -1,15 +1,13 @@
 # Import thu vien
 import socket
 from tkinter import *
-import tkinter
 from PIL import Image, ImageTk
 from tkinter import ttk
 from tkinter.messagebox import askyesno
 import os
-import json
+
+
 # Ham dang ki tai khoan
-
-
 def register():
     global register_screen
     register_screen = Toplevel(main_screen)
@@ -176,7 +174,7 @@ def notificationLogin(username):
         label.pack()
         label.after(2000, lambda: label.destroy())
 
-# Ham them Text Note
+# Ham them ghi chu Text
 
 
 def addTextNote(username):
@@ -203,6 +201,7 @@ def addTextNote(username):
            11), width=15, height=1, bg="#3398cc", command=lambda: addTextToDataBase(username)).pack()
 
 
+# Ham them ghi chu File
 def addFilesNote(username):
 
     global add_file_screen
@@ -229,6 +228,7 @@ def addFilesNote(username):
            11), width=15, height=1, bg="#3398cc", command=lambda: addFileToDataBase(username)).pack()
 
 
+# Ham them ghi chu Image
 def addImagesNote(username):
     global add_image_screen
     add_image_screen = Toplevel(main_screen)
@@ -252,20 +252,7 @@ def addImagesNote(username):
     Button(add_image_screen, text="Submit", fg="white", font=("sans-serif",
            11), width=15, height=1, bg="#3398cc", command=lambda: addImageToDataBase(username)).pack()
 
-
-def addImageToDataBase(username):
-    image_info = image_verify.get()
-    file = open(str(image_info), 'rb')
-    image_data = file.read(2048)
-    client.sendall("add_image".encode(FORMAT))
-    replyRes = client.recv(1024).decode(FORMAT)
-    if(replyRes == "OK"):
-        client.sendall(username.encode(FORMAT))
-        while image_data:
-            client.send(image_data)
-            image_data = file.read(2048)
-        file.close()
-        image_entry.delete(0, END)
+# Ham them text vao Database
 
 
 def addTextToDataBase(username):
@@ -276,6 +263,29 @@ def addTextToDataBase(username):
         client.sendall(username.encode(FORMAT))
         client.sendall(text_info.encode(FORMAT))
         text_entry.delete(0, END)
+
+# Ham them Image vao Database
+
+
+def addImageToDataBase(username):
+    client.sendall("add_image".encode(FORMAT))
+    image_info = image_verify.get()
+    file = open(str(image_info), 'rb')
+    image_data = file.read(2048)
+    replyRes = client.recv(1024).decode(FORMAT)
+    if(replyRes == "OK"):
+        client.sendall(username.encode(FORMAT))
+        client.sendall(str(os.stat(str(image_info)).st_size).encode(FORMAT))
+        
+        # for i in file:
+        #     client.send(i)
+        while image_data:
+            client.send(image_data)
+            image_data = file.read(2048)
+        file.close()
+        image_entry.delete(0, END)
+
+# Ham them file vao Database
 
 
 def addFileToDataBase(username):
@@ -295,7 +305,7 @@ def addFileToDataBase(username):
                     break
                 client.sendall(bytes_read)
         file_entry.delete(0, END)
-# Ham login thanh cong - Chuyen sang trang tra cuu
+# Ham xem chi tiet ghi chu
 
 
 def viewDetailNote(username, index):
@@ -319,9 +329,9 @@ def viewDetailNote(username, index):
                bg="#3398cc", width=10, height=1).pack(pady=20)
 
 
+# Ham xem tat ca ghi chu
 def viewNote(username):
 
-    print("View note is running")
     global view_note_screen
     view_note_screen = Toplevel(login_screen)
     view_note_screen.title("Ứng dụng E-note")
@@ -332,7 +342,6 @@ def viewNote(username):
 
     Label(view_note_screen, text="", fg="white",
           font=("sans-serif", 10), bg='#556677').pack()
-
     client.sendall("view".encode(FORMAT))
     replyRes = client.recv(1024).decode(FORMAT)
     if(replyRes == "OK"):
@@ -342,13 +351,23 @@ def viewNote(username):
             Label(view_note_screen, text="Không có ghi chú nào ", fg="white",
                   font=("sans-serif", 10), bg='#556677').pack()
         else:
+            global indexNote
+            indexNote = StringVar()
+            global indexNoteEntry
+            Label(view_note_screen, text="Nhập vị trí note cần xem: ", fg="white",
+                  font=("sans-serif", 10), bg='#556677').pack()
+            indexNoteEntry = Entry(view_note_screen, textvariable=indexNote, bg="#c0c0c0", font=(
+                "sans-serif", 10), justify=CENTER)
+            indexNoteEntry.focus_force()
+            indexNoteEntry.pack(side=TOP, ipadx=30, ipady=6)
+            Button(view_note_screen, text="Xem", fg="white",
+                   bg="#3398cc", width=10, height=1, command=lambda: viewDetailNote(username, int(indexNoteEntry.get())-1)).pack(pady=20)
             for index in range(lengthNote):
-                Label(view_note_screen, text="Ghi chú" + str(index+1), fg="white",
-                      font=("sans-serif", 10), bg='#556677').pack()
-                Button(view_note_screen, text="Xem", fg="white",
-                       bg="#3398cc", width=10, height=1, command=lambda: viewDetailNote(username, index)).pack(pady=20)
+                Button(view_note_screen, text="Ghi chú " + str(index+1), fg="white",
+                       bg="#3398cc", width=10, height=1).pack(pady=20)
 
 
+# Ham xu ly sau khi Login thanh cong --> chuyen toi trang ghi chu
 def login_sucess(username):
     global search_screen
     search_screen = Toplevel(login_screen)
@@ -372,19 +391,21 @@ def login_sucess(username):
            bg="#3398cc", width=30, height=1, command=lambda: viewNote(username)).pack(pady=20)
 
 
+# Ham thoat Client
 def quitApp():
     main_screen.destroy()
 
 # Trang chu Client
 
 
+# Ham giao dien chinh Client
 def main_account_screen():
     global main_screen
     main_screen = Tk()
     main_screen.geometry("800x500")
     main_screen.title("Trang chủ")
     main_screen.configure(bg='#556677')
-    Label(text="ỨNG DỤNG TRA CỨU TỶ GIÁ TIỀN TỆ", fg="white", bg="#3398cc",
+    Label(text="ỨNG DỤNG E - NOTE", fg="white", bg="#3398cc",
           width="300", height="2", font=("sans-serif", 14)).pack()
     Label(text="", bg='#556677').pack()
     Label(text="ĐẠI HỌC QUỐC GIA THÀNH PHỐ HCM",
@@ -421,6 +442,8 @@ def initClient():
     FORMAT = "utf8"
     global client
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# Ham nhap dia chi HOST
 
 
 def inputHOSTFunction():
