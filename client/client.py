@@ -275,14 +275,11 @@ def addImageToDataBase(username):
     replyRes = client.recv(1024).decode(FORMAT)
     if(replyRes == "OK"):
         client.sendall(username.encode(FORMAT))
-        client.sendall(str(os.stat(str(image_info)).st_size).encode(FORMAT))
-        
-        # for i in file:
-        #     client.send(i)
         while image_data:
             client.send(image_data)
             image_data = file.read(2048)
         file.close()
+        print("Client side sended")
         image_entry.delete(0, END)
 
 # Ham them file vao Database
@@ -326,10 +323,38 @@ def viewDetailNote(username, index):
         Label(view_detail_note_screen, text=str(contentNote), fg="white",
               font=("sans-serif", 10), bg='#556677').pack()
         Button(view_detail_note_screen, text="Download", fg="white",
-               bg="#3398cc", width=10, height=1).pack(pady=20)
+               bg="#3398cc", width=10, height=1, command=lambda: downloadNote(username, index)).pack(pady=20)
+
+# Ham download ghi chu
 
 
+def downloadNote(username, index):
+    client.sendall("download".encode(FORMAT))
+    replyRes = client.recv(1024).decode(FORMAT)
+    if(replyRes == "OK"):
+        client.sendall(str(username).encode(FORMAT))
+        client.sendall(str(index).encode(FORMAT))
+        SEPARATOR = "<SEPARATOR>"
+        BUFFER_SIZE = 1024 * 10000
+
+        received = client.recv(BUFFER_SIZE).decode()
+        filename, filesize = received.split(SEPARATOR)
+        filename = os.path.basename(filename)
+        filesize = int(filesize)
+        type = filename.split('.')
+        filenameNew = str(username) + "_" + "note_" + \
+            str(index) + "." + str(type[1])
+        bytes_read = client.recv(BUFFER_SIZE)
+        with open(filenameNew, "wb") as f:
+            while True:
+                f.write(bytes_read)
+                if os.stat(filenameNew).st_size == filesize or os.stat(filenameNew).st_size == 0:
+                    break
+                bytes_read = client.recv(BUFFER_SIZE)
+                f.write(bytes_read)
 # Ham xem tat ca ghi chu
+
+
 def viewNote(username):
 
     global view_note_screen

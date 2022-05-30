@@ -1,4 +1,5 @@
 # Import cac thu vien
+from dataclasses import field
 import random
 import socket
 import threading
@@ -10,7 +11,7 @@ from tkinter import ttk
 from tkinter.messagebox import askyesno
 from fileinput import filename
 import uuid
-
+import time
 # Ham kiem tra tai khoan dang ki
 
 
@@ -115,7 +116,6 @@ def handleAddImage(conn: socket):
     user_name_content = None
     while(user_name_content != ""):
         user_name_content = conn.recv(1024).decode(FORMAT)
-        image_size = int(conn.recv(1024).decode(FORMAT))
         if os.stat("data.json").st_size != 0:
             data = ""
             with open("data.json", "r+") as file_name:
@@ -129,37 +129,16 @@ def handleAddImage(conn: socket):
                 file_name.seek(0)
                 json.dump(data, file_name, indent=4)
 
-        # file = open(nameImage, "wb")
-        # image_chunk = conn.recv(2048)  # stream-based protocol
-        # while image_chunk:
-        #     file.write(image_chunk)
-        #     image_chunk = conn.recv(2048)
-        # file.close()
-
-        # r = input("Enter the extension of your received file - jpg , png , bmp")
-        # s = "pythonimage123." + r
-        # print(s)
-        # condition = True
-        # c.connect((q, p))
-        # f = open(s, "wb")
-        # while condition:
-        #     image = c.recv(1024)
-        #     if str(image) == "b''":
-        #         condition = False
-        #     f.write(image)
-
-        condition = True
-        with open(nameImage, "wb") as f:
-            while condition:
-                bytes_read = conn.recv(1024)
-                if str(bytes_read) == "b''":
-                    condition = False
-                f.write(bytes_read)
-                # if os.stat(nameImage).st_size * 1.2 > image_size:
-                #     break
-            f.close()
-        print("Da xong image")
+        file = open(nameImage, "wb")
+        image_chunk = conn.recv(2048)  # stream-based protocol
+        for i in range(1000):
+            file.write(image_chunk)
+            image_chunk = conn.recv(2048)
+            print("image: ", len(str(image_chunk)))
+        print("Server side received")
+        file.close()
         HandleClient(conn, addr)
+
 
 # Ham them ghi chu File
 
@@ -233,8 +212,57 @@ def handleViewDetail(conn: socket):
                                   [index]["content"].encode(FORMAT))
         HandleClient(conn, addr)
 
+# Ham xu ly download
 
+
+def handleDownload(conn: socket):
+    conn.send("OK".encode(FORMAT))
+    username = None
+    index = None
+    while(username != "" and index != ""):
+        username = conn.recv(1024).decode(FORMAT)
+        index = int(conn.recv(1024).decode(FORMAT))
+        if os.stat("data.json").st_size != 0:
+            data = ""
+            with open("data.json", "r+") as file_name:
+                data = json.load(file_name)
+                for idx, x in enumerate(data["user"]):
+                    if(x["username"] == username):
+                        if data["user"][idx]["note"][index]["type"] == "text":
+                            fileName = str(username) + \
+                                "_note-text_"+str(index)+".txt"
+                            fileText = open(fileName, "w+")
+                            fileText.write(data["user"][idx]["note"]
+                                           [index]["content"])
+                            fileText.close()
+                            filesize = os.path.getsize(fileName)
+                            BUFFER_SIZE = 1024 * 10000
+                            SEPARATOR = "<SEPARATOR>"
+                            conn.send(
+                                f"{fileName}{SEPARATOR}{filesize}".encode())
+                            with open(fileName, "rb") as f:
+                                while True:
+                                    bytes_read = f.read(BUFFER_SIZE)
+                                    if not bytes_read:
+                                        break
+                                    conn.sendall(bytes_read)
+                        if data["user"][idx]["note"][index]["type"] == "file":
+                            fileName = data["user"][idx]["note"][index]["content"]
+                            filesize = os.path.getsize(fileName)
+                            BUFFER_SIZE = 1024 * 10000
+                            SEPARATOR = "<SEPARATOR>"
+                            conn.send(
+                                f"{fileName}{SEPARATOR}{filesize}".encode())
+                            with open(fileName, "rb") as f:
+                                while True:
+                                    bytes_read = f.read(BUFFER_SIZE)
+                                    if not bytes_read:
+                                        break
+                                    conn.sendall(bytes_read)
+        HandleClient(conn, addr)
 # Ham xu ly cac request cua client
+
+
 def HandleClient(conn: socket, addr):
     global username
     global password
@@ -256,6 +284,8 @@ def HandleClient(conn: socket, addr):
             handleView(conn)
         if(method == "view-detail"):
             handleViewDetail(conn)
+        if(method == "download"):
+            handleDownload(conn)
     conn.close()
 
 # Ham khoi tao Server
